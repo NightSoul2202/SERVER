@@ -12,7 +12,8 @@ with sqlite3.connect('sessions.db') as conn:
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS sessions (
         account_id TEXT PRIMARY KEY,
-        last_ping REAL
+        last_ping REAL,
+        isActive INTEGER DEFAULT 0
     )
     ''')
     
@@ -31,22 +32,28 @@ with sqlite3.connect('sessions.db') as conn:
 def is_account_active(account_id):
     with sqlite3.connect('sessions.db') as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM sessions WHERE account_id = ?', (account_id,))
-        return cursor.fetchone() is not None
+        cursor.execute('SELECT isActive FROM sessions WHERE account_id = ?', (account_id,))
+        result = cursor.fetchone()
+        return result is not None and result[0] == 1
 
 # Реєстрація нової сесії
 def register_session(account_id):
     with sqlite3.connect('sessions.db') as conn:
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO sessions (account_id, last_ping) VALUES (?, ?)', 
-                       (account_id, time.time()))
+        cursor.execute('SELECT * FROM sessions WHERE account_id = ?', (account_id,))
+        if cursor.fetchone() is None:
+            cursor.execute('INSERT INTO sessions (account_id, last_ping, isActive) VALUES (?, ?, 1)', 
+                           (account_id, time.time()))
+        else:
+            cursor.execute('UPDATE sessions SET last_ping = ?, isActive = 1 WHERE account_id = ?', 
+                           (time.time(), account_id))
         conn.commit()
 
 # Видалення сесії
 def logout_session(account_id):
     with sqlite3.connect('sessions.db') as conn:
         cursor = conn.cursor()
-        cursor.execute('DELETE FROM sessions WHERE account_id = ?', (account_id,))
+        cursor.execute('UPDATE sessions SET isActive = 0 WHERE account_id = ?', (account_id,))
         conn.commit()
 
 # Функція для перевірки клієнтів на втрату нетворка
