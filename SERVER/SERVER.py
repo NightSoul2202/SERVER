@@ -69,11 +69,12 @@ def check_clients():
             current_time = time.time()
             
             for account_id, last_ping in sessions:
-                print(current_time - last_ping)
-                if current_time - last_ping > max_time:
-                    # Оновлюємо статус сесії
-                    logout_session(account_id)
-                    print(f"Session for account_id {account_id} marked as open due to network loss.")
+                if is_account_active(account_id):
+                    if current_time - last_ping > max_time:
+                        # Оновлюємо статус сесії
+                        logout_session(account_id)
+
+                        print(f"Session for account_id {account_id} marked as open due to network loss.")
         
         time.sleep(30)
 
