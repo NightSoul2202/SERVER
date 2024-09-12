@@ -150,8 +150,8 @@ def add_record():
                            (account_id, level_name))
             existing_record = cursor.fetchone()
 
-            # якщо рекорд ≥снуЇ та новий результат б≥льший
-            if existing_record is not None and record_max > existing_record[0]:
+            # якщо рекорд ≥снуЇ та новий результат менший
+            if existing_record is not None and record_max < existing_record[0]:
                 cursor.execute('UPDATE leaderboard SET recordMax = ? WHERE account_id = ? AND level_name = ?',
                                (record_max, account_id, level_name))
                 conn.commit()
